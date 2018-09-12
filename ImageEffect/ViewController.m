@@ -9,17 +9,15 @@
 #import "ViewController.h"
 #import <AVFoundation/AVFoundation.h>
 #import <CoreVideo/CoreVideo.h>
-#import "CollectionViewCell.h"
 
-static NSString * kCellID = @"kCellID";
+#import "ImageEffectView.h"
 
-@interface ViewController () <UICollectionViewDataSource, AVCaptureVideoDataOutputSampleBufferDelegate> {
+@interface ViewController () <AVCaptureVideoDataOutputSampleBufferDelegate> {
     NSMutableArray *allItem;
 }
 @property (nonatomic, strong) UIStepper *stepper;
-@property (nonatomic, strong) UIImage *currentImage;
-@property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, strong) AVCaptureSession *captureSession;
+@property (nonatomic, strong) UIScrollView *scrollView;
 @end
 
 @implementation ViewController
@@ -34,7 +32,12 @@ static NSString * kCellID = @"kCellID";
     
     [super loadView];
     [self.navigationController.navigationBar addSubview:self.stepper];
-    [self.view addSubview:self.collectionView];
+    [self.view addSubview:self.scrollView];
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    self.scrollView.frame = self.view.bounds;
 }
 
 - (void)viewDidLoad {
@@ -60,6 +63,7 @@ static NSString * kCellID = @"kCellID";
 
     //控制管理设备
     self.captureSession = [[AVCaptureSession alloc] init];
+    [self.captureSession setSessionPreset:(AVCaptureSessionPresetLow)];
     [self.captureSession startRunning];
 
     //设备
@@ -89,6 +93,43 @@ static NSString * kCellID = @"kCellID";
         [self.captureSession addOutput:videoOutput];
     }
 }
+////通过CGImage的方式，进行图片转换
+//- (void)changeBufferToImageByCGImage:(CMSampleBufferRef _Nonnull)sampleBuffer {
+//    
+//    // 为媒体数据设置一个CMSampleBuffer的Core Video图像缓存对象
+//    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
+//    // 锁定pixel buffer的基地址
+//    CVPixelBufferLockBaseAddress(imageBuffer, 0);
+//    // 得到pixel buffer的基地址
+//    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
+//    // 得到pixel buffer的行字节数
+//    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);
+//    // 得到pixel buffer的宽和高
+//    size_t width = CVPixelBufferGetWidth(imageBuffer);
+//    size_t height = CVPixelBufferGetHeight(imageBuffer);
+//    // 创建一个依赖于设备的RGB颜色空间
+//    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+//    // 用抽样缓存的数据创建一个位图格式的图形上下文（graphics context）对象
+//    CGContextRef context = CGBitmapContextCreate(baseAddress, width, height, 8, bytesPerRow, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
+//    // 根据这个位图context中的像素数据创建一个Quartz image对象
+//    CGImageRef quartzImage = CGBitmapContextCreateImage(context);
+//    // 解锁pixel buffer
+//    CVPixelBufferUnlockBaseAddress(imageBuffer,0);
+//    // 释放context和颜色空间
+//    CGContextRelease(context);
+//    CGColorSpaceRelease(colorSpace);
+//    
+//    
+//    // 用Quartz image创建一个UIImage对象image
+//    UIImage *image = [UIImage imageWithCGImage:quartzImage];
+//    // 释放Quartz image对象
+//    CGImageRelease(quartzImage);
+//    
+//    dispatch_async(dispatch_get_main_queue(), ^{
+//        self.currentImage = image;
+//    });
+//}
+
 
 #pragma mark Property
 - (UIStepper *)stepper {
@@ -103,18 +144,11 @@ static NSString * kCellID = @"kCellID";
     } return _stepper;
 }
 
-- (UICollectionView *)collectionView {
-    
-    if (!_collectionView) {
-        UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
-        layout.itemSize = CGSizeMake(100, 100);
-        _collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds
-                                             collectionViewLayout:layout];
-        [_collectionView registerClass:[CollectionViewCell class]
-            forCellWithReuseIdentifier:kCellID];
-        _collectionView.dataSource = self;
-        _collectionView.backgroundColor = [UIColor whiteColor];
-    } return _collectionView;
+- (UIScrollView *)scrollView {
+    if (!_scrollView) {
+        _scrollView = [[UIScrollView alloc] init];
+        _scrollView.contentSize = CGSizeMake(CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame) * 3);
+    } return _scrollView;
 }
 
 #pragma mark Action
@@ -123,75 +157,29 @@ static NSString * kCellID = @"kCellID";
     NSInteger currentValue = stepper.value;
     if (allItem.count < currentValue) {
         
-        NSIndexPath *indexPath = [NSIndexPath indexPathForItem:allItem.count inSection:0];
-        [allItem addObject:@""];
-        [self.collectionView insertItemsAtIndexPaths:@[indexPath]];
-        CollectionViewCell *cell = (CollectionViewCell *)[self.collectionView cellForItemAtIndexPath:indexPath];
-        [self addObserver:cell forKeyPath:@"currentImage" options:(NSKeyValueObservingOptionNew) context:NULL];
+        ImageEffectView *effectView = [[ImageEffectView alloc] initWithFrame:CGRectMake(0, 60 * allItem.count, 50, 50)];
+        [self.scrollView addSubview:effectView];
+        [allItem addObject:effectView];
+
+        [self addObserver:effectView forKeyPath:@"currentBuffer" options:(NSKeyValueObservingOptionNew) context:NULL];
     } else {
         
-        NSIndexPath *indexPath = [NSIndexPath indexPathForItem:(allItem.count - 1) inSection:0];
-        
-        CollectionViewCell *cell = (CollectionViewCell *)[self.collectionView cellForItemAtIndexPath:indexPath];
-        [self removeObserver:cell forKeyPath:@"currentImage"];
+        ImageEffectView *effectView = [allItem lastObject];
+        [self removeObserver:effectView forKeyPath:@"currentBuffer"];
         [allItem removeLastObject];
-        [self.collectionView deleteItemsAtIndexPaths:@[indexPath]];
     }
-}
-
-#pragma mark Datasource
-- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-    return 1;
-}
-
-- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return allItem.count;
-}
-
-- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    
-    CollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:kCellID forIndexPath:indexPath];
-    cell.backgroundColor = [UIColor blackColor];
-    return cell;
 }
 
 #pragma mark Delegate
 - (void)captureOutput:(AVCaptureOutput *)output didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
-    
+
+    //修正图像上下颠倒的问题
     [connection setVideoOrientation:AVCaptureVideoOrientationPortrait];
-
-    // 为媒体数据设置一个CMSampleBuffer的Core Video图像缓存对象
-    CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
-    // 锁定pixel buffer的基地址
-    CVPixelBufferLockBaseAddress(imageBuffer, 0);
-    // 得到pixel buffer的基地址
-    void *baseAddress = CVPixelBufferGetBaseAddress(imageBuffer);
-    // 得到pixel buffer的行字节数
-    size_t bytesPerRow = CVPixelBufferGetBytesPerRow(imageBuffer);
-    // 得到pixel buffer的宽和高
-    size_t width = CVPixelBufferGetWidth(imageBuffer);
-    size_t height = CVPixelBufferGetHeight(imageBuffer);
-    // 创建一个依赖于设备的RGB颜色空间
-    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-    // 用抽样缓存的数据创建一个位图格式的图形上下文（graphics context）对象
-    CGContextRef context = CGBitmapContextCreate(baseAddress, width, height, 8, bytesPerRow, colorSpace, kCGBitmapByteOrder32Little | kCGImageAlphaPremultipliedFirst);
-    // 根据这个位图context中的像素数据创建一个Quartz image对象
-    CGImageRef quartzImage = CGBitmapContextCreateImage(context);
-    // 解锁pixel buffer
-    CVPixelBufferUnlockBaseAddress(imageBuffer,0);
-    // 释放context和颜色空间
-    CGContextRelease(context);
-    CGColorSpaceRelease(colorSpace);
     
-    
-    // 用Quartz image创建一个UIImage对象image
-    UIImage *image = [UIImage imageWithCGImage:quartzImage];
-    // 释放Quartz image对象
-    CGImageRelease(quartzImage);
+    [allItem enumerateObjectsUsingBlock:^(ImageEffectView *obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [obj changeImage:sampleBuffer];
+    }];
 
-    dispatch_async(dispatch_get_main_queue(), ^{
-        self.currentImage = image;
-    });
 }
 
 @end
