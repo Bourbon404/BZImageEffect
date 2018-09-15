@@ -7,7 +7,7 @@
 //
 
 #import "ImageEffectView.h"
-
+#import "EffectManger.h"
 @interface ImageEffectView ()
 @property (nonatomic, strong) UIImageView *imageView;
 @end
@@ -46,10 +46,7 @@
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
     CIImage *ciImage = [CIImage imageWithCVImageBuffer:imageBuffer];
     
-    
-    NSArray *array = [CIFilter filterNamesInCategory:kCICategoryDistortionEffect];
-    NSString *filterName = [array firstObject];
-    CIFilter*fiter = [CIFilter filterWithName:filterName];
+    CIFilter*fiter = [[EffectManger sharedManager].allEffectArray objectAtIndex:self.tag];
     
     [fiter setValue:ciImage forKey:kCIInputImageKey];
     

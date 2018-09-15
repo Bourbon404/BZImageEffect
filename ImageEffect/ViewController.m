@@ -156,8 +156,13 @@
     
     NSInteger currentValue = stepper.value;
     if (allItem.count < currentValue) {
+
+        CGFloat width = ([UIScreen mainScreen].bounds.size.width - 3 * 10) / 4.0f;
+        CGFloat x = allItem.count % 4;
+        CGFloat y = allItem.count / 4;
         
-        ImageEffectView *effectView = [[ImageEffectView alloc] initWithFrame:CGRectMake(0, 60 * allItem.count, 50, 50)];
+        ImageEffectView *effectView = [[ImageEffectView alloc] initWithFrame:CGRectMake(x * (width + 10), y * (width + 10), width, width)];
+        effectView.tag = allItem.count;
         [self.scrollView addSubview:effectView];
         [allItem addObject:effectView];
 

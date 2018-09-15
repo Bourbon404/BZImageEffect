@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9F64D6DD214D125B008AE257 /* EffectManger.m in Sources */ = {isa = PBXBuildFile; fileRef = 9F64D6DC214D125B008AE257 /* EffectManger.m */; };
 		9FAA4C152148B08100BA3DFC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 9FAA4C142148B08100BA3DFC /* AppDelegate.m */; };
 		9FAA4C182148B08100BA3DFC /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 9FAA4C172148B08100BA3DFC /* ViewController.m */; };
 		9FAA4C1B2148B08100BA3DFC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9FAA4C192148B08100BA3DFC /* Main.storyboard */; };
@@ -17,6 +18,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9F64D6DB214D125B008AE257 /* EffectManger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EffectManger.h; sourceTree = "<group>"; };
+		9F64D6DC214D125B008AE257 /* EffectManger.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EffectManger.m; sourceTree = "<group>"; };
 		9FAA4C102148B08100BA3DFC /* ImageEffect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageEffect.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FAA4C132148B08100BA3DFC /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		9FAA4C142148B08100BA3DFC /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -67,6 +70,8 @@
 				9FAA4C172148B08100BA3DFC /* ViewController.m */,
 				9FAA4C2C2149322300BA3DFC /* ImageEffectView.h */,
 				9FAA4C2D2149322300BA3DFC /* ImageEffectView.m */,
+				9F64D6DB214D125B008AE257 /* EffectManger.h */,
+				9F64D6DC214D125B008AE257 /* EffectManger.m */,
 				9FAA4C192148B08100BA3DFC /* Main.storyboard */,
 				9FAA4C1C2148B08200BA3DFC /* Assets.xcassets */,
 				9FAA4C1E2148B08200BA3DFC /* LaunchScreen.storyboard */,
@@ -146,6 +151,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F64D6DD214D125B008AE257 /* EffectManger.m in Sources */,
 				9FAA4C2E2149322300BA3DFC /* ImageEffectView.m in Sources */,
 				9FAA4C182148B08100BA3DFC /* ViewController.m in Sources */,
 				9FAA4C232148B08200BA3DFC /* main.m in Sources */,
